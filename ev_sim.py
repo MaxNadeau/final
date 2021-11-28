@@ -12,7 +12,7 @@ def fight(s0, s1, p_mat):
     s1, s2 are np prob-vectors, payoff matrix is m*m*2
     """
     move0 = np.random.choice(p_mat, p = s0)
-    move1 = np.random.choice(move1, p = s1)
+    move1 = np.random.choice(move0, p = s1)
     return tuple(move1)
 
 def evolve(p, strats, p_mat):
