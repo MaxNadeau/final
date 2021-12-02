@@ -1,13 +1,16 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import inputs
 
-t_steps = 10
-fights = 100
-pop_size = 100
-init_p = np.array([0.5, 0.5])
+#non-convergence at 5000, 100, 10
+
+t_steps = 40
+fights = 1000 
+pop_size = 50 # 100 and 500 fights converges for MP?
 
 # prisoner's dilemma payoff matrix
-pd_p_mat = np.array([[[2, 2], [-3, 0]],
-                     [[0, -3], [1, 1]]])
+hd_p_mat = np.array([[[-1, -1], [10, 0]],
+                     [[0, 10], [5, 5]]])
 coop = np.array([1, 0])
 defect = np.array([0, 1])
 
@@ -37,21 +40,56 @@ def fight(s0, s1, p_mat):
     """
     s1, s2 are np prob-vectors, payoff matrix is m*m*2
     """
-    move0 = np.random.choice(p_mat, p=s0)
-    move1 = np.random.choice(move0, p=s1)
-    return tuple(move1)
+    # move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
+    # move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
+    # return tuple(move1)
+
+    return np.sum(np.outer(s0, s1) * p_mat[:,:,0]), np.sum(np.outer(s0, s1) * p_mat[:,:,1])
 
 
-def evolve(p, strats, p_mat):
+def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=0.5):
+    def new_pop(f, p, fertile_prop=0.3, eps=0.01):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(pop_size * fertile_prop)
         # gets indices of top n_r agents
-        reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing]
-        return np.repeat(p[reproducers], int(1/fertile_prop))
+        reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
+        fitnesses = f[reproducers] - np.min(f[reproducers]) + eps
+        fitnesses = fitnesses ** 1/3
+        if np.min(fitnesses) < 0:
+            print(f[reproducers], np.min(f[reproducers]), fitnesses)
+        assert np.min(fitnesses) >= 0
+        kids = np.rint(fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
+        if np.min(kids) < 0 or np.min(kids.astype(int)) < 0:
+            print(kids, fitnesses, fitnesses / np.sum(fitnesses) * pop_size)
+        assert np.min(kids) >= 0
+        #print(f"Reproducers are {np.repeat(p[reproducers], int(1/fertile_prop), axis=0)}")
+        #print(kids, kids.dtype)
+        print("Boutta spawn")
+        print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
-    f = np.zero_like(p)  # fitness of each individual
+        return np.repeat(p[reproducers], kids.astype(int), axis=0)
+    def add_noise(init_array):
+        # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
+        ret = init_array + \
+            np.random.normal(loc=0, scale=0.01, size=init_array.shape)
+        ret = np.abs(ret)
+        ret = np.clip(ret, 0, 1)
+        ret = ret / np.sum(ret, axis=1)[:,None] #new axis gets broadcasting to work
+        return ret
+
+    f = np.zeros(p.shape[0])  # fitness of each individual
+
+
+    avg_H_p = np.mean(p[:,0])
+    #print(avg_H_p)
+
+    # for fighter in p:
+    #     avg_H_p_opps = (avg_H_p - (fighter[0]/len(p))) * (len(p)/(len(p) - 1))
+    #     #print(avg_H_p_opps)
+    #     f0, _ = fight(fighter, np.array([avg_H_p_opps, 1 - avg_H_p_opps]), p_mat)
+    #     fighter += f0
+
 
     for _ in range(fights):
         # sample two fighters randomly from the population
@@ -62,30 +100,48 @@ def evolve(p, strats, p_mat):
         f[fighters[1]] += f1
 
     new_p = new_pop(f, p)
+    new_p = add_noise(new_p)
+    return new_p
 
-    return new_pop(f, p)
-
-
-def add_noise(init_array):
-    # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
-    ret = init_array + \
-        np.random.normal(loc=0, scale=0.03, size=init_array.shape)
-    ret = np.abs(ret)
-    ret = np.clip(ret, 0, 1)
-    ret /= np.sum(ret, axis=1)
-    return ret
-
+def sym_mat_msne(mat):
+    a, b, c, d = mat[0,0,0], mat[0,1,0], mat[1,0,0], mat[1,1,0]
+    return (b - d) / (b - a + c - d)
 
 def main():
     strats = (coop, defect)  # tuple of possible strategies for this game
 
-    p_mat = pd_p_mat
-    p = np.choice(strats, size=pop_size, replace=True, p=init_p)
+    # 2-action, uniform initial state population
+    unif_pop = []
+    for i in range(pop_size):
+        prob_vec = [i/pop_size, 1 - i/pop_size]
+        unif_pop.append(prob_vec)
+    p = np.array(unif_pop)
 
+    p_mat = inputs.hd_p_mat
+    #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
+    mins = np.zeros(t_steps)
+    maxes = np.zeros(t_steps)
+    means = np.zeros(t_steps)
     for t in range(t_steps):
-        print(f"Time={t}: strategy proportions {p}")
-        p = evolve(p, strats, p_mat)
+        #print(f"Time={t}: strategies: {np.round(p, 3)}")
+        p = evolve(p, p_mat)
+        mins[t] = np.min(p[:,0])
+        maxes[t] = np.max(p[:,0])
+        means[t] = np.mean(p[:,0])
+    print(f"Final sums {np.sum(p, axis=0)}")
+
+    plt.plot(maxes, color="r", label="max p(H)")
+    plt.plot(means, color="xkcd:orange", label="mean p(H)")
+    plt.plot(mins, "y", label="min p(H)")
+    #plt.axhline(y=5/6, color='r', linestyle='-')
+    plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
+    # plt.plot([1, 2, 3], color="y", marker="o")
+    # plt.plot([1, 2, 3], color="r", marker="o")
+    # plt.show()
     main()
+
