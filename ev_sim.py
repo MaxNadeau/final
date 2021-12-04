@@ -52,7 +52,7 @@ def evolve(p, p_mat):
         fitnesses = f[reproducers] - np.min(f[reproducers])
         # fitnesses = f - np.min(f)
         fitnesses /= np.max(fitnesses) + eps
-        # fitnesses = fitnesses ** 1/3
+        fitnesses = fitnesses
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0

@@ -8,44 +8,18 @@ from scipy import stats
 t_steps = 40
 fights = 1000 
 pop_size = 50 # 100 and 500 fights converges for MP?
+p_mat = inputs.pd_p_mat
 
-# prisoner's dilemma payoff matrix
-hd_p_mat = np.array([[[-1, -1], [10, 0]],
-                     [[0, 10], [5, 5]]])
-coop = np.array([1, 0])
-defect = np.array([0, 1])
-
-# def round_to_ints(orig):
-#     rd = np.floor(orig)
-#     delta = orig - rd
-#     sum_delta = round(np.sum(delta))
-
-#     incrementees = sorted(range(len(orig)), key = delta.__getitem__, reverse = True)[:sum_delta]
-
-#     np.sum(delta)
-#     rounded_down = {peer_id: int(bw_f) for peer_id, bw_f in peer_bws.items()}
-#     delta  = {peer_id: peer_bws[peer_id] - rounded_down[peer_id] for peer_id in peer_bws.keys()}
-#     sum_delta = round(sum(delta.values()))
-
-#     assert  -0.000001 < sum_delta - sum(delta.values()) < 0.000001 and sum_delta < len(peer_bws)
-#     incrementees = sorted(peer_bws.keys(), key = delta.__getitem__, reverse = True)[:sum_delta]
-#     ret = {}
-#     for peer_id in peer_bws.keys():
-#         ret[peer_id] = rounded_down[peer_id] if peer_id not in incrementees else rounded_down[peer_id] + 1
-
-#     print(f"Rounded version {ret}")
-#     return ret
-
-
-def fight(s0, s1, p_mat):
+def fight(s0, s1, p_mat, sample = False):
     """
     s1, s2 are np prob-vectors, payoff matrix is m*m*2
     """
-    # move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
-    # move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
-    # return tuple(move1)
-
-    return np.sum(np.outer(s0, s1) * p_mat[:,:,0]), np.sum(np.outer(s0, s1) * p_mat[:,:,1])
+    if sample:
+        move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
+        move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
+        return tuple(move1)
+    else:
+        return np.sum(np.outer(s0, s1) * p_mat[:,:,0]), np.sum(np.outer(s0, s1) * p_mat[:,:,1])
 
 
 def evolve(p, p_mat):
@@ -70,6 +44,7 @@ def evolve(p, p_mat):
         print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
         return np.repeat(p[reproducers], kids.astype(int), axis=0)
+
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
         ret = init_array + \
@@ -80,17 +55,6 @@ def evolve(p, p_mat):
         return ret
 
     f = np.zeros(p.shape[0])  # fitness of each individual
-
-
-    avg_H_p = np.mean(p[:,0])
-    #print(avg_H_p)
-
-    # for fighter in p:
-    #     avg_H_p_opps = (avg_H_p - (fighter[0]/len(p))) * (len(p)/(len(p) - 1))
-    #     #print(avg_H_p_opps)
-    #     f0, _ = fight(fighter, np.array([avg_H_p_opps, 1 - avg_H_p_opps]), p_mat)
-    #     fighter += f0
-
 
     for _ in range(fights):
         # sample two fighters randomly from the population
@@ -122,29 +86,12 @@ def test_convergence(new_ps, old_ps):
     return pval
 
 def main():
-    strats = (coop, defect)  # tuple of possible strategies for this game
-
     # 2-action, uniform initial state population
     unif_pop = []
     for i in range(pop_size):
         prob_vec = [i/pop_size, 1 - i/pop_size]
         unif_pop.append(prob_vec)
-    p = np.array(unif_pop)
-
-    p_mat = inputs.pd_p_mat
-    #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
-
-    # OLD SETUP
-    # mins = np.zeros(t_steps)
-    # maxes = np.zeros(t_steps)
-    # means = np.zeros(t_steps)
-    # for t in range(t_steps):
-    #     #print(f"Time={t}: strategies: {np.round(p, 3)}")
-    #     p = evolve(p, p_mat)
-    #     mins[t] = np.min(p[:,0])
-    #     maxes[t] = np.max(p[:,0])
-    #     means[t] = np.mean(p[:,0])
-    # print(f"Final sums {np.sum(p, axis=0)}")
+    p = np.array(unif_pop) 
 
     # POTENTIAL NEW SETUP
     mins = np.array([])
