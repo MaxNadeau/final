@@ -5,7 +5,7 @@ from scipy import stats
 
 #non-convergence at 5000, 100, 10
 
-t_steps = 40
+t_steps = 30
 fights = 1000 
 pop_size = 50 # 100 and 500 fights converges for MP?
 
@@ -67,6 +67,7 @@ def evolve(p, p_mat):
         print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
         return np.repeat(p[reproducers], kids.astype(int), axis=0)
+
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
         ret = init_array + \
