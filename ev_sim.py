@@ -7,7 +7,7 @@ from scipy import stats
 
 t_steps = 30
 fights = 1000
-pop_size = 50  # 100 and 500 fights converges for MP?
+pop_size = 100  # 100 and 500 fights converges for MP?
 
 # def round_to_ints(orig):
 #     rd = np.floor(orig)
@@ -44,19 +44,19 @@ def fight(s0, s1, p_mat):
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=1, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.75, eps=0.01):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
-        # reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
-        # fitnesses = f[reproducers] - np.min(f[reproducers])
-        fitnesses = f - np.min(f)
+        reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
+        fitnesses = f[reproducers] - np.min(f[reproducers])
+        # fitnesses = f - np.min(f)
         fitnesses /= np.max(fitnesses) + eps
         # fitnesses = fitnesses ** 1/3
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
-        kids = np.rint(2 * fitnesses / np.sum(fitnesses)
+        kids = np.rint(fitnesses / np.sum(fitnesses)
                        * pop_size)  # round to nearest int
         num_kids = np.sum(kids)
         print(f"NUMBER OF KIDS IS {num_kids}")
@@ -70,7 +70,7 @@ def evolve(p, p_mat):
         # print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
         # return np.repeat(p[reproducers], kids.astype(int), axis=0)
-        return np.repeat(p, kids.astype(int), axis=0)
+        return np.repeat(p[reproducers], kids.astype(int), axis=0)
 
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
@@ -158,7 +158,7 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.999):
+    while (test_convergence(p, old_ps) <= 0.99):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
@@ -182,5 +182,5 @@ if __name__ == "__main__":
     # plt.plot([1, 2, 3], color="y", marker="o")
     # plt.plot([1, 2, 3], color="r", marker="o")
     # plt.show()
-    print(plt.rcParams['backend'])
-    # main()
+    # print(plt.rcParams['backend'])
+    main()
