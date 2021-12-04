@@ -9,6 +9,12 @@ t_steps = 40
 fights = 1000 
 pop_size = 50 # 100 and 500 fights converges for MP?
 
+# prisoner's dilemma payoff matrix
+hd_p_mat = np.array([[[-1, -1], [10, 0]],
+                     [[0, 10], [5, 5]]])
+coop = np.array([1, 0])
+defect = np.array([0, 1])
+
 # def round_to_ints(orig):
 #     rd = np.floor(orig)
 #     delta = orig - rd
@@ -44,20 +50,17 @@ def fight(s0, s1, p_mat):
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=1, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.3, eps=0.01):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(pop_size * fertile_prop)
         # gets indices of top n_r agents
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
-        fitnesses = (f[reproducers] - np.min(f[reproducers]))
-        fitnesses = f[reproducers]/(np.max(f[reproducers])+ eps)
-        # fitnesses = fitnesses ** 1/3
+        fitnesses = f[reproducers] - np.min(f[reproducers]) + eps
+        fitnesses = fitnesses ** 1/3
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
         kids = np.rint(fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
-        num_kids = np.sum(kids)
-        print(f"NUMBER OF KIDS IS {num_kids}")
         if np.min(kids) < 0 or np.min(kids.astype(int)) < 0:
             print(kids, fitnesses, fitnesses / np.sum(fitnesses) * pop_size)
         assert np.min(kids) >= 0
@@ -119,7 +122,7 @@ def test_convergence(new_ps, old_ps):
     return pval
 
 def main():
-    # strats = (coop, defect)  # tuple of possible strategies for this game
+    strats = (coop, defect)  # tuple of possible strategies for this game
 
     # 2-action, uniform initial state population
     unif_pop = []
@@ -128,7 +131,7 @@ def main():
         unif_pop.append(prob_vec)
     p = np.array(unif_pop)
 
-    p_mat = inputs.hd_p_mat2
+    p_mat = inputs.pd_p_mat
     #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
 
     # OLD SETUP
@@ -175,4 +178,3 @@ if __name__ == "__main__":
     # plt.plot([1, 2, 3], color="r", marker="o")
     # plt.show()
     main()
-

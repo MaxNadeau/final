@@ -1,8 +1,8 @@
 import numpy as np
 
 # prisoner's dilemma payoff matrix
-pd_p_mat = np.array([[[2, 2], [-3, 0]],
-                     [[0, -3], [1, 1]]])
+pd_p_mat = np.array([[[4, 4], [0, 5]],
+                     [[5, 0], [2, 2]]])
 
 # chicken
 ch_p_mat = np.array([[[0, 0], [0, 2]],
