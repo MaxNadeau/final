@@ -4,7 +4,7 @@ import inputs
 
 #non-convergence at 5000, 100, 10
 
-t_steps = 40
+t_steps = 30
 fights = 1000 
 pop_size = 50 # 100 and 500 fights converges for MP?
 
@@ -13,27 +13,6 @@ hd_p_mat = np.array([[[-1, -1], [10, 0]],
                      [[0, 10], [5, 5]]])
 coop = np.array([1, 0])
 defect = np.array([0, 1])
-
-# def round_to_ints(orig):
-#     rd = np.floor(orig)
-#     delta = orig - rd
-#     sum_delta = round(np.sum(delta))
-
-#     incrementees = sorted(range(len(orig)), key = delta.__getitem__, reverse = True)[:sum_delta]
-
-#     np.sum(delta)
-#     rounded_down = {peer_id: int(bw_f) for peer_id, bw_f in peer_bws.items()}
-#     delta  = {peer_id: peer_bws[peer_id] - rounded_down[peer_id] for peer_id in peer_bws.keys()}
-#     sum_delta = round(sum(delta.values()))
-
-#     assert  -0.000001 < sum_delta - sum(delta.values()) < 0.000001 and sum_delta < len(peer_bws)
-#     incrementees = sorted(peer_bws.keys(), key = delta.__getitem__, reverse = True)[:sum_delta]
-#     ret = {}
-#     for peer_id in peer_bws.keys():
-#         ret[peer_id] = rounded_down[peer_id] if peer_id not in incrementees else rounded_down[peer_id] + 1
-
-#     print(f"Rounded version {ret}")
-#     return ret
 
 
 def fight(s0, s1, p_mat):
@@ -55,7 +34,7 @@ def evolve(p, p_mat):
         # gets indices of top n_r agents
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
         fitnesses = f[reproducers] - np.min(f[reproducers]) + eps
-        fitnesses = fitnesses ** 1/3
+        fitnesses = fitnesses
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
@@ -69,6 +48,7 @@ def evolve(p, p_mat):
         print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
         return np.repeat(p[reproducers], kids.astype(int), axis=0)
+
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
         ret = init_array + \
@@ -110,30 +90,31 @@ def sym_mat_msne(mat):
 def main():
     strats = (coop, defect)  # tuple of possible strategies for this game
 
-    # 2-action, uniform initial state population
-    unif_pop = []
-    for i in range(pop_size):
-        prob_vec = [i/pop_size, 1 - i/pop_size]
-        unif_pop.append(prob_vec)
-    p = np.array(unif_pop)
+    for _ in range(20):
+        # 2-action, uniform initial state population
+        unif_pop = []
+        for i in range(pop_size):
+            prob_vec = [i/pop_size, 1 - i/pop_size]
+            unif_pop.append(prob_vec)
+        p = np.array(unif_pop)
 
-    p_mat = inputs.hd_p_mat
-    #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
-    mins = np.zeros(t_steps)
-    maxes = np.zeros(t_steps)
-    means = np.zeros(t_steps)
-    for t in range(t_steps):
-        #print(f"Time={t}: strategies: {np.round(p, 3)}")
-        p = evolve(p, p_mat)
-        mins[t] = np.min(p[:,0])
-        maxes[t] = np.max(p[:,0])
-        means[t] = np.mean(p[:,0])
-    print(f"Final sums {np.sum(p, axis=0)}")
+        p_mat = inputs.hd_p_mat2
+        #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
+        mins = np.zeros(t_steps)
+        maxes = np.zeros(t_steps)
+        means = np.zeros(t_steps)
+        for t in range(t_steps):
+            #print(f"Time={t}: strategies: {np.round(p, 3)}")
+            p = evolve(p, p_mat)
+            mins[t] = np.min(p[:,0])
+            maxes[t] = np.max(p[:,0])
+            means[t] = np.mean(p[:,0])
+        print(f"Final sums {np.sum(p, axis=0)}")
 
-    plt.plot(maxes, color="r", label="max p(H)")
-    plt.plot(means, color="xkcd:orange", label="mean p(H)")
-    plt.plot(mins, "y", label="min p(H)")
-    #plt.axhline(y=5/6, color='r', linestyle='-')
+        #plt.plot(maxes, color="r", label="max p(H)")
+        plt.plot(means, color="xkcd:orange")#, label="mean p(H)")
+        #plt.plot(mins, "y", label="min p(H)")
+        #plt.axhline(y=5/6, color='r', linestyle='-')
     plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
     plt.legend()
     plt.show()
