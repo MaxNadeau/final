@@ -48,14 +48,15 @@ def evolve(p, p_mat):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(pop_size * fertile_prop)
         # gets indices of top n_r agents
-        reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
-        fitnesses = (f[reproducers] - np.min(f[reproducers]))
-        fitnesses = f[reproducers]/(np.max(f[reproducers])+ eps)
+        # reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
+        # fitnesses = f[reproducers] - np.min(f[reproducers])
+        fitnesses = f - np.min(f)
+        fitnesses /= np.max(fitnesses) + eps
         # fitnesses = fitnesses ** 1/3
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
-        kids = np.rint(fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
+        kids = np.rint(2 * fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
         num_kids = np.sum(kids)
         print(f"NUMBER OF KIDS IS {num_kids}")
         if np.min(kids) < 0 or np.min(kids.astype(int)) < 0:
@@ -64,9 +65,10 @@ def evolve(p, p_mat):
         #print(f"Reproducers are {np.repeat(p[reproducers], int(1/fertile_prop), axis=0)}")
         #print(kids, kids.dtype)
         print("Boutta spawn")
-        print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
+        # print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
-        return np.repeat(p[reproducers], kids.astype(int), axis=0)
+        # return np.repeat(p[reproducers], kids.astype(int), axis=0)
+        return np.repeat(p, kids.astype(int), axis=0)
 
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
@@ -151,7 +153,7 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.994):
+    while (test_convergence(p, old_ps) <= 0.997):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
