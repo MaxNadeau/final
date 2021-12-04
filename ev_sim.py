@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import inputs
+import scipy
 
 #non-convergence at 5000, 100, 10
 
@@ -107,6 +108,14 @@ def sym_mat_msne(mat):
     a, b, c, d = mat[0,0,0], mat[0,1,0], mat[1,0,0], mat[1,1,0]
     return (b - d) / (b - a + c - d)
 
+# Currently only works for two-action games, uses 2-sample Kolmogorov-Smirnov Test
+# Looked at KL Divergence, maybe an alternative for other games
+# Difficulty with this is that the null hypothesis is that the samples come from
+# the same distribution... not ideal, may have to change. Couldn't find anything
+# comparable where the null hypothesis was that they're different.
+def test_convergence(new_ps, old_ps):
+    pval = scipy.stats.kstest(new_ps, old_ps)
+
 def main():
     strats = (coop, defect)  # tuple of possible strategies for this game
 
@@ -119,15 +128,34 @@ def main():
 
     p_mat = inputs.hd_p_mat
     #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
-    mins = np.zeros(t_steps)
-    maxes = np.zeros(t_steps)
-    means = np.zeros(t_steps)
-    for t in range(t_steps):
-        #print(f"Time={t}: strategies: {np.round(p, 3)}")
+
+    # OLD SETUP
+    # mins = np.zeros(t_steps)
+    # maxes = np.zeros(t_steps)
+    # means = np.zeros(t_steps)
+    # for t in range(t_steps):
+    #     #print(f"Time={t}: strategies: {np.round(p, 3)}")
+    #     p = evolve(p, p_mat)
+    #     mins[t] = np.min(p[:,0])
+    #     maxes[t] = np.max(p[:,0])
+    #     means[t] = np.mean(p[:,0])
+    # print(f"Final sums {np.sum(p, axis=0)}")
+
+    # POTENTIAL NEW SETUP
+    mins = np.array([])
+    maxes = np.array([])
+    means = np.array([])
+    old_ps = p
+    p = evolve(p, p_mat)
+    t = 0
+    while (test_convergence(p, old_ps) >= 0.99):
+        print(f"Time={t}: strategies: {np.round(p, 3)}")
+        t += 1
+        old_ps = p
         p = evolve(p, p_mat)
-        mins[t] = np.min(p[:,0])
-        maxes[t] = np.max(p[:,0])
-        means[t] = np.mean(p[:,0])
+        mins.append = np.min(p[:,0])
+        maxes.append = np.max(p[:,0])
+        means.append = np.mean(p[:,0])
     print(f"Final sums {np.sum(p, axis=0)}")
 
     plt.plot(maxes, color="r", label="max p(H)")
