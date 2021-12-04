@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import inputs
-import scipy
+from scipy import stats
 
 #non-convergence at 5000, 100, 10
 
@@ -114,7 +114,12 @@ def sym_mat_msne(mat):
 # the same distribution... not ideal, may have to change. Couldn't find anything
 # comparable where the null hypothesis was that they're different.
 def test_convergence(new_ps, old_ps):
-    pval = scipy.stats.kstest(new_ps, old_ps)
+    # Converts vector format to single float format
+    new_ps = new_ps[:,0]
+    old_ps = old_ps[:,0]
+    pval = stats.kstest(new_ps, old_ps).pvalue
+    print(f"PVALUE IS {pval}")
+    return pval
 
 def main():
     strats = (coop, defect)  # tuple of possible strategies for this game
@@ -148,15 +153,17 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) >= 0.99):
+    while (test_convergence(p, old_ps) <= 0.99):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
         p = evolve(p, p_mat)
-        mins.append = np.min(p[:,0])
-        maxes.append = np.max(p[:,0])
-        means.append = np.mean(p[:,0])
+        mins = np.append(mins, np.min(p[:,0]))
+        maxes = np.append(maxes, np.max(p[:,0]))
+        means = np.append(means, np.mean(p[:,0]))
     print(f"Final sums {np.sum(p, axis=0)}")
+    print(f"Total number of time steps was {t}")
+    print(f"MINS IS {mins}")
 
     plt.plot(maxes, color="r", label="max p(H)")
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
