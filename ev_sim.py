@@ -46,7 +46,7 @@ def evolve(p, p_mat):
 
     def new_pop(f, p, fertile_prop=1, eps=0.01):
         # Note: Will not always produce exactly 100 agents
-        n_reproducing = int(pop_size * fertile_prop)
+        n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
         # reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
         # fitnesses = f[reproducers] - np.min(f[reproducers])
@@ -59,6 +59,7 @@ def evolve(p, p_mat):
         kids = np.rint(2 * fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
         num_kids = np.sum(kids)
         print(f"NUMBER OF KIDS IS {num_kids}")
+        print(f"KIDS FOR EACH PLAYER IS: {kids}")
         if np.min(kids) < 0 or np.min(kids.astype(int)) < 0:
             print(kids, fitnesses, fitnesses / np.sum(fitnesses) * pop_size)
         assert np.min(kids) >= 0
@@ -153,7 +154,7 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.997):
+    while (test_convergence(p, old_ps) <= 0.999):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
