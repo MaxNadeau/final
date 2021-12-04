@@ -6,8 +6,8 @@ from scipy import stats
 # non-convergence at 5000, 100, 10
 
 t_steps = 30
+pop_size = 50  # 100 and 500 fights converges for MP?
 fights = 1000
-pop_size = 100  # 100 and 500 fights converges for MP?
 
 # def round_to_ints(orig):
 #     rd = np.floor(orig)
@@ -44,7 +44,7 @@ def fight(s0, s1, p_mat):
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=0.75, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.6, eps=0.01):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
@@ -158,7 +158,7 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.99):
+    while (test_convergence(p, old_ps) <= 0.995):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
