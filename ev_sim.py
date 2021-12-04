@@ -163,7 +163,6 @@ def main():
         means = np.append(means, np.mean(p[:,0]))
     print(f"Final sums {np.sum(p, axis=0)}")
     print(f"Total number of time steps was {t}")
-    print(f"MINS IS {mins}")
 
     plt.plot(maxes, color="r", label="max p(H)")
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
