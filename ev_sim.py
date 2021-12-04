@@ -35,7 +35,7 @@ def evolve(p, p_mat):
         # gets indices of top n_r agents
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
         fitnesses = f[reproducers] - np.min(f[reproducers]) + eps
-        fitnesses = fitnesses
+        fitnesses = fitnesses 
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
@@ -104,33 +104,6 @@ def test_convergence(new_ps, old_ps):
 def main():
     strats = (coop, defect)  # tuple of possible strategies for this game
 
-<<<<<<< HEAD
-    for _ in range(20):
-        # 2-action, uniform initial state population
-        unif_pop = []
-        for i in range(pop_size):
-            prob_vec = [i/pop_size, 1 - i/pop_size]
-            unif_pop.append(prob_vec)
-        p = np.array(unif_pop)
-
-        p_mat = inputs.hd_p_mat2
-        #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
-        mins = np.zeros(t_steps)
-        maxes = np.zeros(t_steps)
-        means = np.zeros(t_steps)
-        for t in range(t_steps):
-            #print(f"Time={t}: strategies: {np.round(p, 3)}")
-            p = evolve(p, p_mat)
-            mins[t] = np.min(p[:,0])
-            maxes[t] = np.max(p[:,0])
-            means[t] = np.mean(p[:,0])
-        print(f"Final sums {np.sum(p, axis=0)}")
-
-        #plt.plot(maxes, color="r", label="max p(H)")
-        plt.plot(means, color="xkcd:orange")#, label="mean p(H)")
-        #plt.plot(mins, "y", label="min p(H)")
-        #plt.axhline(y=5/6, color='r', linestyle='-')
-=======
     # 2-action, uniform initial state population
     unif_pop = []
     for i in range(pop_size):
@@ -175,7 +148,6 @@ def main():
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
     plt.plot(mins, "y", label="min p(H)")
     #plt.axhline(y=5/6, color='r', linestyle='-')
->>>>>>> bb88bc98fc7ea59272b90ee534f896a8b99004e8
     plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
     plt.legend()
     plt.show()
