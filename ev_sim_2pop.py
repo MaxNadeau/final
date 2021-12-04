@@ -3,11 +3,17 @@ import matplotlib.pyplot as plt
 import inputs
 from scipy import stats
 
-# non-convergence at 5000, 100, 10
+#non-convergence at 5000, 100, 10
 
-t_steps = 30
-fights = 1000
-pop_size = 50  # 100 and 500 fights converges for MP?
+t_steps = 40
+fights = 1000 
+pop_size = 50 # 100 and 500 fights converges for MP?
+
+# prisoner's dilemma payoff matrix
+hd_p_mat = np.array([[[-1, -1], [10, 0]],
+                     [[0, 10], [5, 5]]])
+coop = np.array([1, 0])
+defect = np.array([0, 1])
 
 # def round_to_ints(orig):
 #     rd = np.floor(orig)
@@ -39,59 +45,52 @@ def fight(s0, s1, p_mat):
     # move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
     # return tuple(move1)
 
-    return np.sum(np.outer(s0, s1) * p_mat[:, :, 0]), np.sum(np.outer(s0, s1) * p_mat[:, :, 1])
+    return np.sum(np.outer(s0, s1) * p_mat[:,:,0]), np.sum(np.outer(s0, s1) * p_mat[:,:,1])
 
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=1, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.3, eps=0.01):
         # Note: Will not always produce exactly 100 agents
-        n_reproducing = int(len(p) * fertile_prop)
+        n_reproducing = int(pop_size * fertile_prop)
         # gets indices of top n_r agents
-        # reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
-        # fitnesses = f[reproducers] - np.min(f[reproducers])
-        fitnesses = f - np.min(f)
-        fitnesses /= np.max(fitnesses) + eps
-        # fitnesses = fitnesses ** 1/3
+        reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
+        fitnesses = f[reproducers] - np.min(f[reproducers]) + eps
+        fitnesses = fitnesses ** 1/3
         if np.min(fitnesses) < 0:
             print(f[reproducers], np.min(f[reproducers]), fitnesses)
         assert np.min(fitnesses) >= 0
-        kids = np.rint(2 * fitnesses / np.sum(fitnesses)
-                       * pop_size)  # round to nearest int
-        num_kids = np.sum(kids)
-        print(f"NUMBER OF KIDS IS {num_kids}")
-        print(f"KIDS FOR EACH PLAYER IS: {kids}")
+        kids = np.rint(fitnesses / np.sum(fitnesses) * pop_size) # round to nearest int
         if np.min(kids) < 0 or np.min(kids.astype(int)) < 0:
             print(kids, fitnesses, fitnesses / np.sum(fitnesses) * pop_size)
         assert np.min(kids) >= 0
         #print(f"Reproducers are {np.repeat(p[reproducers], int(1/fertile_prop), axis=0)}")
         #print(kids, kids.dtype)
         print("Boutta spawn")
-        # print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
+        print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
-        # return np.repeat(p[reproducers], kids.astype(int), axis=0)
-        return np.repeat(p, kids.astype(int), axis=0)
-
+        return np.repeat(p[reproducers], kids.astype(int), axis=0)
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
         ret = init_array + \
             np.random.normal(loc=0, scale=0.01, size=init_array.shape)
         ret = np.abs(ret)
         ret = np.clip(ret, 0, 1)
-        # new axis gets broadcasting to work
-        ret = ret / np.sum(ret, axis=1)[:, None]
+        ret = ret / np.sum(ret, axis=1)[:,None] #new axis gets broadcasting to work
         return ret
 
     f = np.zeros(p.shape[0])  # fitness of each individual
 
-    avg_H_p = np.mean(p[:, 0])
-    # print(avg_H_p)
+
+    avg_H_p = np.mean(p[:,0])
+    #print(avg_H_p)
 
     # for fighter in p:
     #     avg_H_p_opps = (avg_H_p - (fighter[0]/len(p))) * (len(p)/(len(p) - 1))
     #     #print(avg_H_p_opps)
     #     f0, _ = fight(fighter, np.array([avg_H_p_opps, 1 - avg_H_p_opps]), p_mat)
     #     fighter += f0
+
 
     for _ in range(fights):
         # sample two fighters randomly from the population
@@ -105,9 +104,8 @@ def evolve(p, p_mat):
     new_p = add_noise(new_p)
     return new_p
 
-
 def sym_mat_msne(mat):
-    a, b, c, d = mat[0, 0, 0], mat[0, 1, 0], mat[1, 0, 0], mat[1, 1, 0]
+    a, b, c, d = mat[0,0,0], mat[0,1,0], mat[1,0,0], mat[1,1,0]
     return (b - d) / (b - a + c - d)
 
 # Currently only works for two-action games, uses 2-sample Kolmogorov-Smirnov Test
@@ -115,19 +113,16 @@ def sym_mat_msne(mat):
 # Difficulty with this is that the null hypothesis is that the samples come from
 # the same distribution... not ideal, may have to change. Couldn't find anything
 # comparable where the null hypothesis was that they're different.
-
-
 def test_convergence(new_ps, old_ps):
     # Converts vector format to single float format
-    new_ps = new_ps[:, 0]
-    old_ps = old_ps[:, 0]
+    new_ps = new_ps[:,0]
+    old_ps = old_ps[:,0]
     pval = stats.kstest(new_ps, old_ps).pvalue
     print(f"PVALUE IS {pval}")
     return pval
 
-
 def main():
-    # strats = (coop, defect)  # tuple of possible strategies for this game
+    strats = (coop, defect)  # tuple of possible strategies for this game
 
     # 2-action, uniform initial state population
     unif_pop = []
@@ -136,7 +131,7 @@ def main():
         unif_pop.append(prob_vec)
     p = np.array(unif_pop)
 
-    p_mat = inputs.hd_p_mat2
+    p_mat = inputs.pd_p_mat
     #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
 
     # OLD SETUP
@@ -158,14 +153,14 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.999):
+    while (test_convergence(p, old_ps) <= 0.994):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
         p = evolve(p, p_mat)
-        mins = np.append(mins, np.min(p[:, 0]))
-        maxes = np.append(maxes, np.max(p[:, 0]))
-        means = np.append(means, np.mean(p[:, 0]))
+        mins = np.append(mins, np.min(p[:,0]))
+        maxes = np.append(maxes, np.max(p[:,0]))
+        means = np.append(means, np.mean(p[:,0]))
     print(f"Final sums {np.sum(p, axis=0)}")
     print(f"Total number of time steps was {t}")
 
@@ -182,5 +177,4 @@ if __name__ == "__main__":
     # plt.plot([1, 2, 3], color="y", marker="o")
     # plt.plot([1, 2, 3], color="r", marker="o")
     # plt.show()
-    print(plt.rcParams['backend'])
-    # main()
+    main()
