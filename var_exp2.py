@@ -28,9 +28,9 @@ def evolve(p, p_mat):
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
         
         # subtracts min ONLY OF REPRODUCERS
-        fitnesses = f[reproducers] - np.min(f[reproducers])
+        # fitnesses = f[reproducers] - np.min(f[reproducers])
         # subtracts min of WHOLE POPULATION
-        # fitnesses = f[reproducers] - np.min(f)
+        fitnesses = f[reproducers] - np.min(f)
 
         fitnesses /= np.max(fitnesses) + eps
         assert np.min(fitnesses) >= 0
