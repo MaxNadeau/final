@@ -100,7 +100,7 @@ def evolve(p, p2, p_mat):
         return ret
 
     f = np.zeros(p.shape[0])  # fitness of each individual
-    g = np.zeros(p.shape[0])  # fitness for population 2
+    g = np.zeros(p2.shape[0])  # fitness for population 2
     avg_H_p = np.mean(p[:, 0])
     # print(avg_H_p)
 
@@ -112,11 +112,13 @@ def evolve(p, p2, p_mat):
 
     for _ in range(fights):
         # sample two fighters randomly from p1 and p2
-        fight0 = np.random.choice(p)
-        fight1 = np.random.choice(p2)
-        f0, f1 = fight(fight0, fight1, p_mat)
-        f[fight0] += f0
-        g[fight1] += f1
+        i0 = np.random.randint(len(p) - 1)
+        i1 = np.random.randint(len(p2) - 1)
+        s0 = p[i0]
+        s1 = p2[i1]
+        f0, f1 = fight(s0, s1, p_mat)
+        f[i0] += f0
+        g[i1] += f1
 
     new_p = new_pop(f, p)
     new_p = add_noise(new_p)
