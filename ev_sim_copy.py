@@ -191,9 +191,9 @@ def main():
         mins = np.append(mins, np.min(p[:, 0]))
         maxes = np.append(maxes, np.max(p[:, 0]))
         means = np.append(means, np.mean(p[:, 0]))
-        mins2 = np.append(mins2, np.min(p[:, 0]))
-        maxes2 = np.append(maxes2, np.max(p[:, 0]))
-        means2 = np.append(means2, np.mean(p[:, 0]))
+        mins2 = np.append(mins2, np.min(p[:, 2]))
+        maxes2 = np.append(maxes2, np.max(p[:, 2]))
+        means2 = np.append(means2, np.mean(p[:, 2]))
     print(f"Final sums {np.sum(p, axis=0)}")
     print(f"Total number of time steps was {t}")
 
