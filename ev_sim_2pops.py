@@ -142,7 +142,7 @@ def test_convergence(new_ps, old_ps):
     # Converts vector format to single float format
     pval = stats.kstest(new_ps[:, 0], old_ps[:, 0]).pvalue
     pval2 = stats.kstest(new_ps[:, 2], old_ps[:, 2]).pvalue
-    pval = max(pval, pval2)
+    pval = min(pval, pval2)
     print(f"PVALUE IS {pval}")
     return pval
 
@@ -187,7 +187,7 @@ def main():
     old_ps2 = p2
     p, p2 = evolve(p, p2, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.997 and test_convergence(p2, old_ps2) <= 0.997):
+    while (test_convergence(p, old_ps) <= 0.997 or test_convergence(p2, old_ps2) <= 0.997):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
