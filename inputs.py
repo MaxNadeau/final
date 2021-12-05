@@ -20,6 +20,10 @@ hd_p_mat = np.array([[[-1, -1], [10, 0]],
 hd_p_mat2 = np.array([[[-4, -4], [10, 0]],
                      [[0, 10], [5, 5]]])
 
+# hawk-dove
+hd_p_mat3 = np.array([[[-10, -10], [10, 0]],
+                     [[0, 10], [5, 5]]])
+
 # 2-action, uniform initial state population
 unif_pop = []
 for i in range(100):

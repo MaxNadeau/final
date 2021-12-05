@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import inputs
 from scipy import stats
 
-t_steps = 100
-pop_size = 50  # 100 and 500 fights converges for MP?
+t_steps = 150
+pop_size = 50
 fights = 1000
 
 def fight(s0, s1, p_mat):
@@ -12,16 +12,16 @@ def fight(s0, s1, p_mat):
     s1, s2 are np prob-vectors, payoff matrix is m*m*2
     """
     # this is EXPECTED payoff
-    # return np.sum(np.outer(s0, s1) * p_mat[:, :, 0]), np.sum(np.outer(s0, s1) * p_mat[:, :, 1])
+    return np.sum(np.outer(s0, s1) * p_mat[:, :, 0]), np.sum(np.outer(s0, s1) * p_mat[:, :, 1])
     # this is actual payoff
-    move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
-    move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
-    return tuple(move1)
+    # move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
+    # move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
+    # return tuple(move1)
 
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=0.2, eps=0.01):
+    def new_pop(f, p, fertile_prop=1, eps=0.01):
         # Note: Will not always produce exactly pop_size agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
@@ -71,7 +71,7 @@ def evolve(p, p_mat):
         f[fighters[1]] += f1
 
     new_p = new_pop(f, p)
-    new_p = add_noise(new_p, 0.03)
+    new_p = add_noise(new_p, 0.01)
     return new_p
 
 
@@ -117,8 +117,8 @@ def simulate(t_steps, p_mat, p):
     # plt.show()
     
 def main():
-    epsilon = 0.03
-    p_mat = inputs.hd_p_mat2
+    # epsilon = 0.03
+    p_mat = inputs.hd_p_mat3
 
     # half of population plays MSNE, other half plays MSNE + epsilon
     msne = sym_mat_msne(p_mat)

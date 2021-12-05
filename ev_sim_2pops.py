@@ -187,7 +187,7 @@ def main():
     old_ps2 = p2
     p, p2 = evolve(p, p2, p_mat)
     t = 0
-    while (test_convergence(p, old_ps) <= 0.997 or test_convergence(p2, old_ps2) <= 0.997):
+    while (test_convergence(p, old_ps) <= 0.75 or test_convergence(p2, old_ps2) <= 0.75):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
