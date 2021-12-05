@@ -177,12 +177,10 @@ def main():
     # print(f"Final sums {np.sum(p, axis=0)}")
 
     # POTENTIAL NEW SETUP
-    mins = np.array([])
-    maxes = np.array([])
-    means = np.array([])
-    mins2 = np.array([])
-    maxes2 = np.array([])
-    means2 = np.array([])
+    means11 = np.array([])
+    means12 = np.array([])
+    means21 = np.array([])
+    means22 = np.array([])
     old_ps = p
     old_ps2 = p2
     p, p2 = evolve(p, p2, p_mat)
@@ -191,22 +189,19 @@ def main():
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
-        p = evolve(p, p_mat)
-        mins = np.append(mins, np.min(p[:, 0]))
-        maxes = np.append(maxes, np.max(p[:, 0]))
-        means = np.append(means, np.mean(p[:, 0]))
-        mins2 = np.append(mins2, np.min(p[:, 2]))
-        maxes2 = np.append(maxes2, np.max(p[:, 2]))
-        means2 = np.append(means2, np.mean(p[:, 2]))
+        old_ps2 = p2
+        p, p2 = evolve(p, p2, p_mat)
+        means11 = np.append(means11, np.mean(p[:, 0]))
+        means12 = np.append(means12, np.mean(p[:, 2]))
+        means21 = np.append(means21, np.mean(p2[:, 0]))
+        means22 = np.append(means22, np.mean(p2[:, 2]))
     print(f"Final sums {np.sum(p, axis=0)}")
     print(f"Total number of time steps was {t}")
 
-    plt.plot(maxes, color="r", label="max p(H)")
-    plt.plot(means, color="xkcd:orange", label="mean p(H)")
-    plt.plot(mins, "y", label="min p(H)")
-    plt.plot(maxes2, color="g", label="max p2(H)")
-    plt.plot(means2, color="xkcd:purple", label="mean p2(H)")
-    plt.plot(mins2, "b", label="min p2(H)")
+    plt.plot(means11, color="xkcd:orange", label="mean p1(H), pos 1")
+    plt.plot(means12, "y", label="mean p1(H), pos 2")
+    plt.plot(means21, color="xkcd:blue", label="mean p2(H), pos 1")
+    plt.plot(means22, "g", label="mean p2(H), pos 2")
     #plt.axhline(y=5/6, color='r', linestyle='-')
     plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
     plt.legend()
