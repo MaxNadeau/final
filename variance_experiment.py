@@ -16,7 +16,7 @@ def fight(s0, s1, p_mat):
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=1, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.5, eps=0.01):
         # Note: Will not always produce exactly pop_size agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
@@ -84,15 +84,6 @@ def test_convergence(new_ps, old_ps):
 
 
 def main():
-    # strats = (coop, defect)  # tuple of possible strategies for this game
-
-    # # 2-action, uniform initial state population
-    # unif_pop = []
-    # for i in range(pop_size):
-    #     prob_vec = [i/pop_size, 1 - i/pop_size]
-    #     unif_pop.append(prob_vec)
-    # p = np.array(unif_pop)
-
     p_mat = inputs.hd_p_mat2
 
     # half of population plays MSNE, other half plays MSNE + epsilon
@@ -104,10 +95,6 @@ def main():
     elt_msne_plus = np.array([[msne_plus, 1-msne_plus]])
     msne_plus_vec = np.repeat(elt_msne_plus, pop_size/2, axis=0)
     p = np.concatenate((msne_vec, msne_plus_vec), axis=0)
-    
-    # print(f"POP IS {p}")
-
-    #p = np.choice(strats, size=pop_size, replace=True, p=init_p)
 
     # OLD SETUP
     mins = np.zeros(t_steps)
@@ -116,14 +103,13 @@ def main():
     twenty_fifths = np.zeros(t_steps)
     seventy_fifths = np.zeros(t_steps)
     for t in range(t_steps):
-        #print(f"Time={t}: strategies: {np.round(p, 3)}")
-        p = evolve(p, p_mat)
         mins[t] = np.min(p[:,0])
         twenty_fifths[t] = np.quantile(p[:, 0], q = 0.25)
         maxes[t] = np.max(p[:,0])
         means[t] = np.mean(p[:,0])
         seventy_fifths[t] = np.quantile(p[:, 0], q = 0.75)
         maxes[t] = np.max(p[:,0])
+        p = evolve(p, p_mat)
     print(f"Final sums {np.sum(p, axis=0)}")
     
 
@@ -134,7 +120,7 @@ def main():
     # old_ps = p
     # p = evolve(p, p_mat)
     # t = 0
-    # while (test_convergence(p, old_ps) <= 0.995):
+    # while (np.array_equal(p, old_ps)):
     #     print(f"Time={t}: strategies: {np.round(p, 3)}")
     #     t += 1
     #     old_ps = p
@@ -147,11 +133,10 @@ def main():
 
     plt.plot(maxes, color="r", label="max p(H)")
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
-    plt.plot(mins, "blue", label="min p(H)")
-    plt.plot(twenty_fifths, "purple", label="25th percentile p(H)")
-    plt.plot(seventy_fifths, "green", label="75th percentile p(H)")
-    #plt.axhline(y=5/6, color='r', linestyle='-')
-    # plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
+    # plt.plot(mins, "blue", label="min p(H)")
+    # plt.plot(twenty_fifths, "purple", label="25th percentile p(H)")
+    # plt.plot(seventy_fifths, "green", label="75th percentile p(H)")
+    plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
     plt.legend()
     plt.show()
     
