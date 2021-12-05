@@ -177,6 +177,9 @@ def main():
     mins = np.array([])
     maxes = np.array([])
     means = np.array([])
+    mins2 = np.array([])
+    maxes2 = np.array([])
+    means2 = np.array([])
     old_ps = p
     p = evolve(p, p_mat)
     t = 0
@@ -188,12 +191,18 @@ def main():
         mins = np.append(mins, np.min(p[:, 0]))
         maxes = np.append(maxes, np.max(p[:, 0]))
         means = np.append(means, np.mean(p[:, 0]))
+        mins2 = np.append(mins2, np.min(p[:, 0]))
+        maxes2 = np.append(maxes2, np.max(p[:, 0]))
+        means2 = np.append(means2, np.mean(p[:, 0]))
     print(f"Final sums {np.sum(p, axis=0)}")
     print(f"Total number of time steps was {t}")
 
     plt.plot(maxes, color="r", label="max p(H)")
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
     plt.plot(mins, "y", label="min p(H)")
+    plt.plot(maxes2, color="g", label="max p2(H)")
+    plt.plot(means2, color="xkcd:purple", label="mean p2(H)")
+    plt.plot(mins2, "b", label="min p2(H)")
     #plt.axhline(y=5/6, color='r', linestyle='-')
     plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
     plt.legend()
