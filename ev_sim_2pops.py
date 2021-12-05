@@ -140,9 +140,9 @@ def sym_mat_msne(mat):
 
 def test_convergence(new_ps, old_ps):
     # Converts vector format to single float format
-    new_ps = new_ps[:, 0]
-    old_ps = old_ps[:, 0]
-    pval = stats.kstest(new_ps, old_ps).pvalue
+    pval = stats.kstest(new_ps[:, 0], old_ps[:, 0]).pvalue
+    pval2 = stats.kstest(new_ps[:, 2], old_ps[:, 2]).pvalue
+    pval = max(pval, pval2)
     print(f"PVALUE IS {pval}")
     return pval
 
