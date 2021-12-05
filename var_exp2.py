@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import inputs
 from scipy import stats
 
-t_steps = 40
+t_steps = 100
 pop_size = 50  # 100 and 500 fights converges for MP?
 fights = 1000
 
@@ -12,21 +12,26 @@ def fight(s0, s1, p_mat):
     s1, s2 are np prob-vectors, payoff matrix is m*m*2
     """
     # this is EXPECTED payoff
-    return np.sum(np.outer(s0, s1) * p_mat[:, :, 0]), np.sum(np.outer(s0, s1) * p_mat[:, :, 1])
+    # return np.sum(np.outer(s0, s1) * p_mat[:, :, 0]), np.sum(np.outer(s0, s1) * p_mat[:, :, 1])
     # this is actual payoff
-    # move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
-    # move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
-    # return tuple(move1)
+    move0 = p_mat[np.random.choice(range(p_mat.shape[0]), p=s0)]
+    move1 = move0[np.random.choice(range(p_mat.shape[0]), p=s1)]
+    return tuple(move1)
 
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=1, eps=0.01):
+    def new_pop(f, p, fertile_prop=0.2, eps=0.01):
         # Note: Will not always produce exactly pop_size agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
+        
+        # subtracts min ONLY OF REPRODUCERS
         fitnesses = f[reproducers] - np.min(f[reproducers])
+        # subtracts min of WHOLE POPULATION
+        # fitnesses = f[reproducers] - np.min(f)
+
         fitnesses /= np.max(fitnesses) + eps
         assert np.min(fitnesses) >= 0
         kids = np.rint(fitnesses / np.sum(fitnesses)
@@ -45,15 +50,15 @@ def evolve(p, p_mat):
         # return np.repeat(p[reproducers], kids.astype(int), axis=0)
         return np.repeat(p[reproducers], kids.astype(int), axis=0)
 
-    # def add_noise(init_array, sd_noise):
-    #     # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
-    #     ret = init_array + \
-    #         np.random.normal(loc=0, scale=sd_noise, size=init_array.shape)
-    #     ret = np.abs(ret)
-    #     ret = np.clip(ret, 0, 1)
-    #     # new axis gets broadcasting to work
-    #     ret = ret / np.sum(ret, axis=1)[:, None]
-    #     return ret
+    def add_noise(init_array, sd_noise):
+        # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
+        ret = init_array + \
+            np.random.normal(loc=0, scale=sd_noise, size=init_array.shape)
+        ret = np.abs(ret)
+        ret = np.clip(ret, 0, 1)
+        # new axis gets broadcasting to work
+        ret = ret / np.sum(ret, axis=1)[:, None]
+        return ret
 
     f = np.zeros(p.shape[0])  # fitness of each individual
 
@@ -66,7 +71,7 @@ def evolve(p, p_mat):
         f[fighters[1]] += f1
 
     new_p = new_pop(f, p)
-    # new_p = add_noise(new_p, 0)
+    new_p = add_noise(new_p, 0.03)
     return new_p
 
 
@@ -114,14 +119,22 @@ def simulate(t_steps, p_mat, p):
 def main():
     epsilon = 0.03
     p_mat = inputs.hd_p_mat2
+
     # half of population plays MSNE, other half plays MSNE + epsilon
     msne = sym_mat_msne(p_mat)
-    elt_msne = np.array([[msne, 1-msne]])
-    msne_vec = np.repeat(elt_msne, pop_size/2, axis=0)
-    msne_plus = msne + epsilon
-    elt_msne_plus = np.array([[msne_plus, 1-msne_plus]])
-    msne_plus_vec = np.repeat(elt_msne_plus, pop_size/2, axis=0)
-    p = np.concatenate((msne_vec, msne_plus_vec), axis=0)
+    # elt_msne = np.array([[msne, 1-msne]])
+    # msne_vec = np.repeat(elt_msne, pop_size/2, axis=0)
+    # msne_plus = msne + epsilon
+    # elt_msne_plus = np.array([[msne_plus, 1-msne_plus]])
+    # msne_plus_vec = np.repeat(elt_msne_plus, pop_size/2, axis=0)
+    # p = np.concatenate((msne_vec, msne_plus_vec), axis=0)
+
+    # uniform initial state population
+    unif_pop = []
+    for i in range(pop_size):
+        prob_vec = [i/pop_size, 1 - i/pop_size]
+        unif_pop.append(prob_vec)
+    p = np.array(unif_pop)
 
     num_simulations = 50
     means = np.zeros_like(t_steps)
@@ -131,8 +144,8 @@ def main():
     means = means / num_simulations
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
     plt.axhline(y=msne, color='b', linestyle='-', label="MSNE")
-    plt.axhline(y=msne + epsilon, color='r', linestyle='-', label="MSNE + epsilon")
-    plt.axhline(y=msne + epsilon/2, color='g', linestyle='-', label="MSNE + half epsilon")
+    # plt.axhline(y=msne + epsilon, color='r', linestyle='-', label="MSNE + epsilon")
+    # plt.axhline(y=msne + epsilon/2, color='g', linestyle='-', label="MSNE + half epsilon")
     plt.legend()
     plt.show()
 
