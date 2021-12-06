@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import inputs
 from scipy import stats
 
-t_steps = 50
+t_steps = 200
 pop_size = 50  # 100 and 500 fights converges for MP?
 fights = 1000
 
@@ -16,7 +16,7 @@ def fight(s0, s1, p_mat):
 
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=0.2, eps=0.01):
+    def new_pop(f, p, fertile_prop=1, eps=0.01):
         # Note: Will not always produce exactly pop_size agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
