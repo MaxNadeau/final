@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import inputs
 from scipy import stats
 
-t_steps = 150
+t_steps = 100
 pop_size = 50
 fights = 1000
 
@@ -71,7 +71,7 @@ def evolve(p, p_mat):
         f[fighters[1]] += f1
 
     new_p = new_pop(f, p)
-    new_p = add_noise(new_p, 0.01)
+    new_p = add_noise(new_p, 0.005)
     return new_p
 
 
@@ -117,26 +117,26 @@ def simulate(t_steps, p_mat, p):
     # plt.show()
     
 def main():
-    # epsilon = 0.03
     p_mat = inputs.hd_p_mat3
 
-    # half of population plays MSNE, other half plays MSNE + epsilon
+    # half of population starts playing MSNE, other half plays MSNE + epsilon
+    epsilon = 0.03
     msne = sym_mat_msne(p_mat)
-    # elt_msne = np.array([[msne, 1-msne]])
-    # msne_vec = np.repeat(elt_msne, pop_size/2, axis=0)
-    # msne_plus = msne + epsilon
-    # elt_msne_plus = np.array([[msne_plus, 1-msne_plus]])
-    # msne_plus_vec = np.repeat(elt_msne_plus, pop_size/2, axis=0)
-    # p = np.concatenate((msne_vec, msne_plus_vec), axis=0)
+    elt_msne = np.array([[msne, 1-msne]])
+    msne_vec = np.repeat(elt_msne, pop_size/2, axis=0)
+    msne_plus = msne + epsilon
+    elt_msne_plus = np.array([[msne_plus, 1-msne_plus]])
+    msne_plus_vec = np.repeat(elt_msne_plus, pop_size/2, axis=0)
+    p = np.concatenate((msne_vec, msne_plus_vec), axis=0)
 
     # uniform initial state population
-    unif_pop = []
-    for i in range(pop_size):
-        prob_vec = [i/pop_size, 1 - i/pop_size]
-        unif_pop.append(prob_vec)
-    p = np.array(unif_pop)
+    # unif_pop = []
+    # for i in range(pop_size):
+    #     prob_vec = [i/pop_size, 1 - i/pop_size]
+    #     unif_pop.append(prob_vec)
+    # p = np.array(unif_pop)
 
-    num_simulations = 50
+    num_simulations = 100
     means = np.zeros_like(t_steps)
     for i in range(num_simulations):
         means_i = simulate(t_steps, p_mat, p)
@@ -144,8 +144,8 @@ def main():
     means = means / num_simulations
     plt.plot(means, color="xkcd:orange", label="mean p(H)")
     plt.axhline(y=msne, color='b', linestyle='-', label="MSNE")
-    # plt.axhline(y=msne + epsilon, color='r', linestyle='-', label="MSNE + epsilon")
-    # plt.axhline(y=msne + epsilon/2, color='g', linestyle='-', label="MSNE + half epsilon")
+    plt.axhline(y=msne + epsilon, color='r', linestyle='-', label="MSNE + epsilon")
+    plt.axhline(y=msne + epsilon/2, color='g', linestyle='-', label="MSNE + half epsilon")
     plt.legend()
     plt.show()
 
