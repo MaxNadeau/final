@@ -180,8 +180,12 @@ def main():
     mins2 = np.array([])
     maxes2 = np.array([])
     means2 = np.array([])
+    means = np.append(means, np.mean(p[:, 0]))
+    means2 = np.append(means2, np.mean(p[:, 2]))
     old_ps = p
     p = evolve(p, p_mat)
+    means = np.append(means, np.mean(p[:, 0]))
+    means2 = np.append(means2, np.mean(p[:, 2]))
     t = 0
     while (test_convergence(p, old_ps) <= 0.995):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
