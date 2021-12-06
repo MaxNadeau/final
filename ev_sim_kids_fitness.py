@@ -50,6 +50,7 @@ def evolve(p, p_mat):
         # gets indices of top n_r agents
         reproducers = np.argpartition(f, -n_reproducing)[-n_reproducing:]
         fitnesses = f[reproducers] - np.min(f[reproducers])
+        fitnesses2 = f[reproducers]
         # fitnesses = f - np.min(f)
         fitnesses /= np.max(fitnesses) + eps
         fitnesses = fitnesses
@@ -70,7 +71,7 @@ def evolve(p, p_mat):
         # print(np.round(np.transpose(np.array([np.transpose(p[reproducers][:, 0]), f[reproducers], kids])), 3))
 
         # return np.repeat(p[reproducers], kids.astype(int), axis=0)
-        return np.repeat(p[reproducers], kids.astype(int), axis=0)
+        return [np.repeat(p[reproducers], kids.astype(int), axis=0), kids, fitnesses2]
 
     def add_noise(init_array):
         # Takes in a 2D numpy array, where each subarray is a strategy vector. Then adds noise to each subarray
@@ -102,7 +103,7 @@ def evolve(p, p_mat):
         f[fighters[1]] += f1
 
     new_p = new_pop(f, p)
-    new_p = add_noise(new_p)
+    new_p[0] = add_noise(new_p[0])
     return new_p
 
 
@@ -158,13 +159,15 @@ def main():
     kids = np.array([])
     fitnesses = np.array([])
     old_ps = p
-    p = evolve(p, p_mat)
+    p = evolve(p, p_mat)[0]
     t = 0
     while (test_convergence(p, old_ps) <= 0.995):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
-        p = evolve(p, p_mat)
+        p, kids_t, fitnesses_t = evolve(p, p_mat)
+        kids = np.append(kids, kids_t)
+        fitnesses = np.append(fitnesses, fitnesses_t)
         mins = np.append(mins, np.min(p[:, 0]))
         maxes = np.append(maxes, np.max(p[:, 0]))
         means = np.append(means, np.mean(p[:, 0]))
@@ -172,11 +175,12 @@ def main():
     print(f"Total number of time steps was {t}")
 
 
-    plt.plot(maxes, color="r", label="max p(H)")
-    plt.plot(means, color="xkcd:orange", label="mean p(H)")
-    plt.plot(mins, "y", label="min p(H)")
+    # plt.plot(maxes, color="r", label="max p(H)")
+    # plt.plot(means, color="xkcd:orange", label="mean p(H)")
+    # plt.plot(mins, "y", label="min p(H)")
     #plt.axhline(y=5/6, color='r', linestyle='-')
-    plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
+    # plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
+    plt.scatter(fitnesses, kids, alpha = 0.1)
     plt.legend()
     plt.show()
 
