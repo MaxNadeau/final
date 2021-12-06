@@ -44,7 +44,7 @@ def fight(s0, s1, p_mat):
 # modified to return kids and fitnesses as well, for testing relationship between fitness and kids
 def evolve(p, p_mat):
 
-    def new_pop(f, p, fertile_prop=0.6, eps=0.01):
+    def new_pop(f, p, fertile_prop=1, eps=0.01):
         # Note: Will not always produce exactly 100 agents
         n_reproducing = int(len(p) * fertile_prop)
         # gets indices of top n_r agents
@@ -161,7 +161,7 @@ def main():
     old_ps = p
     p = evolve(p, p_mat)[0]
     t = 0
-    while (test_convergence(p, old_ps) <= 0.995):
+    while (test_convergence(p, old_ps) <= 0.999):
         print(f"Time={t}: strategies: {np.round(p, 3)}")
         t += 1
         old_ps = p
@@ -180,7 +180,11 @@ def main():
     # plt.plot(mins, "y", label="min p(H)")
     #plt.axhline(y=5/6, color='r', linestyle='-')
     # plt.axhline(y=sym_mat_msne(p_mat), color='b', linestyle='-')
-    plt.scatter(fitnesses, kids, alpha = 0.1)
+    plt.scatter(fitnesses, kids, alpha = 0.05)
+    # plt.plot(fitnesses, kids, label = "Line of best fit")
+    plt.plot(np.unique(fitnesses), np.poly1d(np.polyfit(fitnesses, kids, 1))(np.unique(fitnesses)), label = "Line of best fit")
+    plt.xlabel("Fitness score")
+    plt.ylabel("Number of children")
     plt.legend()
     plt.show()
 
